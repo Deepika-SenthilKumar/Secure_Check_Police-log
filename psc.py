@@ -1,7 +1,5 @@
-#from sqlite3 import Cursor
 import streamlit as st
 import pymysql
-#import mysql.connector
 import plotly.express as px
 import pandas as pd
 
@@ -36,13 +34,13 @@ def fetch_data(query):
         return pd.DataFrame()
     
 
-#   # ------------------ Streamlit Page Config ------------------
+#------------------ Streamlit Page Config ------------------
 st.set_page_config(page_title="Traffic Stops Dashboard", layout="wide")
 
 st.title("Secure Check: Police Check Post Digital Ledger")
 st.markdown("Law Enforcement & Public Safety Real-time Monitoring Systems")
 
-# show table 
+#-------------------show table------------------------------ 
 st.header("Police Security Check Data")
 query="SELECT * FROM traffic"
 data=fetch_data(query)
@@ -71,7 +69,7 @@ with col4:
     st.metric("Total drug_related", drugs_related_stop)
 
 
-#list of query from select box
+#--------------------------list of query------------------------------
 
 st.header("Traffic Stops queries")
 select_query=st.selectbox("Select Query to run ",[
@@ -262,7 +260,7 @@ if st.button("Run Query"):
     else:
         st.warning("No data found for the selected query.")
 
-# 
+#-----------------------------------------Input form--------------------------------------
 st.header("add police log to predict outcome and violation")
 
 with st.form("police_log_form"):
@@ -296,7 +294,7 @@ with st.form("police_log_form"):
             (data['drugs_related_stop'] == int(drugs_related_stop))
         ]
 
-        # Predict stop outcome
+        # ----------------------Predict stop outcome-----------------------
         if not filtered_data.empty:
             predicted_outcome = filtered_data['stop_outcome'].mode()[0]
             predicted_violation = filtered_data['violation'].mode()[0]
@@ -304,7 +302,7 @@ with st.form("police_log_form"):
             predicted_outcome = "Warning" 
             predicted_violation = "Speeding"
 
-        # Natural Language Summary
+        #--------------------------------Insight-----------------------------------
         search_text = "A Search was Conducted" if int(search_conducted) else "No search was conducted"
         drug_text = "was drug_related" if int(drugs_related_stop) else "was not drug_related"
 
@@ -321,4 +319,5 @@ with st.form("police_log_form"):
 
                     Vehicle Number: **{vehicle_number}**.
                     """)
+
 
