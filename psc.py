@@ -1,6 +1,5 @@
 import streamlit as st
 import pymysql
-import plotly.express as px
 import pandas as pd
 
 #Database connection
@@ -319,5 +318,6 @@ with st.form("police_log_form"):
 
                     Vehicle Number: **{vehicle_number}**.
                     """)
+
 
 
