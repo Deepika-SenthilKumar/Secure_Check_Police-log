@@ -189,66 +189,55 @@ query_map = {
              ORDER BY count DESC""",
 
     "Yearly breakdown of stops & arrests by country":
-            """SELECT country_name,year,stops,arrest_rate
-            FROM (
-            SELECT country_name,YEAR(stop_date) AS year,COUNT(*) AS stops,
-            AVG(CASE WHEN is_arrested = '1' THEN 1.0 ELSE 0.0 END) AS arrest_rate
-            FROM traffic
-            GROUP BY country_name, YEAR(stop_date)
-            ) AS yearly_stats 
-            ORDER BY year ASC"""
-,
+           
+            """select country_name, yearly_breakdown, 
+            SUM(total_stops) OVER (PARTITION BY country_name) AS total_stops, 
+            SUM(total_arrests) OVER (PARTITION BY country_name) AS total_arrests 
+            from (select country_name, count(*) as total_stops, 
+            extract(year from stop_date) as yearly_breakdown,
+            sum(case when is_arrested = True then 1 else 0 end) as total_arrests 
+            from traffic 
+            group by country_name, extract(year from stop_date)) as yearly_data 
+            order by country_name, yearly_breakdown""",
 
     "Driver violation trends by age & race":
            
-            
-            """WITH ViolationSummary AS (
-            SELECT
-                driver_age,driver_race,violation,COUNT(*) AS count
-            FROM
-                traffic
-            GROUP BY
-                driver_age,driver_race,violation
-            )
-            SELECT
-            vs.driver_age,vs.driver_race,vs.violation,vs.count,
-            SUM(vs.count) OVER (PARTITION BY vs.driver_race) AS total_by_race
-            FROM
-                ViolationSummary vs
-            ORDER BY
-                vs.count DESC""",
+            """select distinct v.violation, ps.driver_age, ps.driver_race 
+            from traffic ps join (select driver_age, driver_race, count(*) as violation 
+            from traffic group by driver_age, driver_race) as v 
+            on ps.driver_age = v.driver_age and ps.driver_race = v.driver_race 
+            order by v.violation desc""",
 
+    "Time period analysis of stops (Year/Month/Hour)":
+                
+            """select year(stop_date) as stop_year, 
+            month(stop_date) as stop_month, 
+            hour(stop_time) as stop_hour, count(*) as Number_of_stops 
+            from traffic group by stop_year, stop_month, stop_hour""",
 
-    "Time Period Analysis of Stops (Joining with Date Functions), Number of Stops by Year, Month, Hour of the Day": 
-                """select 
-                 year(stop_date) as stop_year, month(stop_date) as stop_month, hour(stop_time) as stop_hour, count(*) as Number_of_stops
-                 from traffic
-                 group by 
-                 stop_year, stop_month, stop_hour""",
-    
     "Violations with High Search and Arrest Rates (Window Function)":
-                """select 
-                violation, count(*) as total_stops, 
-                sum(case when search_conducted = True then 1 else 0 end) as total_search, 
-                sum(case when is_arrested = True then 1 else 0 end) as total_arrest, 
-                rank() over (order by sum(case when search_conducted = True then 1 else 0 end)* 1.0 / Count(*)) as search, 
-                rank() over (order by sum(case when is_arrested = True then 1 else 0 end)* 1.0/ count(*)) as arrest 
-                from traffic 
-                group by violation""",
+            """select 
+            violation, count(*) as total_stops, 
+            sum(case when search_conducted = True then 1 else 0 end) as total_search, 
+            sum(case when is_arrested = True then 1 else 0 end) as total_arrest, 
+            rank() over (order by sum(case when search_conducted = True then 1 else 0 end)* 1.0 / Count(*)) as search, 
+            rank() over (order by sum(case when is_arrested = True then 1 else 0 end)* 1.0/ count(*)) as arrest 
+            from traffic 
+            group by violation""",
     
     "Driver Demographics by Country (Age, Gender, and Race)": 
-                """select 
-                 country_name, driver_age, driver_gender, driver_race, count(*) as total_drivers
-                 from traffic
-                 group by country_name, driver_age, driver_gender, driver_race
-                 order by country_name, driver_age, driver_gender, driver_race""",
-    
+            """select 
+             country_name, driver_age, driver_gender, driver_race, count(*) as total_drivers
+             from traffic
+             group by country_name, driver_age, driver_gender, driver_race
+             order by country_name, driver_age, driver_gender, driver_race""",
+
     "Top 5 Violations with Highest Arrest Rates": 
-                """select violation, count(*) as total_stops, 
-                 sum(case when is_arrested = True then 1 else 0 end) as total_arrest, 
-                 round(sum(case when is_arrested = True then 1 else 0 end) *1.0/ count(*), 2) as arrest_rate 
-                 from traffic
-                 group by violation order by total_arrest desc limit 5"""
+            """select violation, count(*) as total_stops, 
+             sum(case when is_arrested = True then 1 else 0 end) as total_arrest, 
+             round(sum(case when is_arrested = True then 1 else 0 end) *1.0/ count(*), 2) as arrest_rate 
+             from traffic
+             group by violation order by total_arrest desc limit 5"""
 }
 
     
@@ -318,6 +307,7 @@ with st.form("police_log_form"):
 
                     Vehicle Number: **{vehicle_number}**.
                     """)
+
 
 
 
