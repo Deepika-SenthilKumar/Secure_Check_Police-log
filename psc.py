@@ -90,7 +90,7 @@ select_query=st.selectbox("Select Query to run ",[
     "Yearly breakdown of stops & arrests by country",
     "Driver violation trends by age & race",
     "Time period analysis of stops (Year/Month/Hour)",
-    "Top 5 violations with highest arrest rates",
+    "Violations with High Search and Arrest Rates",
     "Driver Demographics",
     "Top 5 violation with highest arrest",
 
@@ -215,7 +215,7 @@ query_map = {
             hour(stop_time) as stop_hour, count(*) as Number_of_stops 
             from traffic group by stop_year, stop_month, stop_hour""",
 
-    "Violations with High Search and Arrest Rates (Window Function)":
+    "Violations with High Search and Arrest Rates":
             """select 
             violation, count(*) as total_stops, 
             sum(case when search_conducted = True then 1 else 0 end) as total_search, 
@@ -225,14 +225,14 @@ query_map = {
             from traffic 
             group by violation""",
     
-    "Driver Demographics by Country (Age, Gender, and Race)": 
+    "Driver Demographics": 
             """select 
              country_name, driver_age, driver_gender, driver_race, count(*) as total_drivers
              from traffic
              group by country_name, driver_age, driver_gender, driver_race
              order by country_name, driver_age, driver_gender, driver_race""",
 
-    "Top 5 Violations with Highest Arrest Rates": 
+    "Top 5 violation with highest arrest": 
             """select violation, count(*) as total_stops, 
              sum(case when is_arrested = True then 1 else 0 end) as total_arrest, 
              round(sum(case when is_arrested = True then 1 else 0 end) *1.0/ count(*), 2) as arrest_rate 
@@ -307,6 +307,7 @@ with st.form("police_log_form"):
 
                     Vehicle Number: **{vehicle_number}**.
                     """)
+
 
 
 
